@@ -1,41 +1,77 @@
+using DDDworkshop.Dam.Rights.Api.Middleware;
+using DDDworkshop.Dam.Rights.Application.Abstractions;
+using DDDworkshop.Dam.Rights.Application.Handlers;
+using DDDworkshop.Dam.Rights.Domain.Events;
+using DDDworkshop.Dam.Rights.Domain.Policies;
+using DDDworkshop.Dam.Rights.Domain.Repositories;
+using DDDworkshop.Dam.Rights.Infrastructure.EventHandlers;
+using DDDworkshop.Dam.Rights.Infrastructure.Repositories;
+using DDDworkshop.Dam.Rights.Infrastructure.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// ---------------------------------------------------------------------------
+// DI Registration
+// ---------------------------------------------------------------------------
+
+// ASP.NET Core MVC controllers
+builder.Services.AddControllers();
+
+// OpenAPI / Swagger
 builder.Services.AddOpenApi();
+
+// --- Domain layer ---
+// Policy (pure domain service – depends only on domain interfaces)
+builder.Services.AddScoped<IExclusiveLicensingPolicy, ExclusiveLicensingPolicy>();
+
+// --- Infrastructure layer ---
+// In-memory repositories (singleton so data survives across requests)
+builder.Services.AddSingleton<IAssetRightsRepository, InMemoryAssetRightsRepository>();
+builder.Services.AddSingleton<ILicenseGrantRepository, InMemoryLicenseGrantRepository>();
+
+// Clock
+builder.Services.AddSingleton<IClock, SystemClock>();
+
+// Domain event dispatcher (uses IServiceProvider to resolve handlers)
+builder.Services.AddScoped<IDomainEventDispatcher, InProcessDomainEventDispatcher>();
+
+// Domain event handlers
+builder.Services.AddScoped<IDomainEventHandler<LicenseGrantedEvent>, LicenseGrantedEventHandler>();
+builder.Services.AddScoped<IDomainEventHandler<LicenseRevokedEvent>, LicenseRevokedEventHandler>();
+
+// --- Application layer ---
+// Command handlers
+builder.Services.AddScoped<RequestLicenseHandler>();
+builder.Services.AddScoped<RevokeLicenseHandler>();
+builder.Services.AddScoped<SetRightsProfileHandler>();
+builder.Services.AddScoped<AddRestrictionHandler>();
+builder.Services.AddScoped<AddExclusiveWindowHandler>();
+
+// Query handlers
+builder.Services.AddScoped<QueryHandlers>();
+
+// ---------------------------------------------------------------------------
+// Build & Configure Pipeline
+// ---------------------------------------------------------------------------
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    // Swagger UI available at /swagger
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "DDDworkshop Rights API v1");
+    });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// Domain exception → HTTP status code mapping
+app.UseMiddleware<DomainExceptionMiddleware>();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

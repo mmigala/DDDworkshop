@@ -1,6 +1,116 @@
-@DDDworkshop.Dam.Rights.Api_HostAddress = http://localhost:5177
+@host = http://localhost:5177
+@assetId = 00000000-0000-0000-0000-000000000001
+@licenseeId = 00000000-0000-0000-0000-000000000099
+@ownerId = 00000000-0000-0000-0000-000000000010
 
-GET {{DDDworkshop.Dam.Rights.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### ─── Rights Profile ─────────────────────────────────────────────
 
-###
+### 1. Create a rights profile for an asset
+PUT {{host}}/assets/{{assetId}}/rights-profile
+Content-Type: application/json
+
+{
+  "ownerId": "{{ownerId}}",
+  "releaseStatus": "ModelRelease"
+}
+
+### 2. Get the rights profile
+GET {{host}}/assets/{{assetId}}/rights-profile
+
+### 3. Add a restriction: editorial only (block commercial)
+POST {{host}}/assets/{{assetId}}/rights-profile/restrictions
+Content-Type: application/json
+
+{
+  "description": "Editorial use only - commercial blocked",
+  "restrictedPurpose": "Commercial"
+}
+
+### 4. Add a restriction: no broadcast in US
+POST {{host}}/assets/{{assetId}}/rights-profile/restrictions
+Content-Type: application/json
+
+{
+  "description": "No broadcast in US",
+  "restrictedChannel": "Broadcast",
+  "restrictedTerritoryCodes": ["US"]
+}
+
+### ─── License Requests ───────────────────────────────────────────
+
+### 5. Scenario A: Allowed editorial use (Web + Norway + 3 months)
+POST {{host}}/assets/{{assetId}}/license-requests
+Content-Type: application/json
+
+{
+  "licenseeId": "{{licenseeId}}",
+  "channel": "Web",
+  "territoryCodes": ["NO"],
+  "timeWindowStart": "2026-03-01T00:00:00Z",
+  "timeWindowEnd": "2026-06-01T00:00:00Z",
+  "purpose": "Editorial",
+  "isExclusive": false
+}
+
+### 6. Scenario B: Denied commercial use
+POST {{host}}/assets/{{assetId}}/license-requests
+Content-Type: application/json
+
+{
+  "licenseeId": "{{licenseeId}}",
+  "channel": "Web",
+  "territoryCodes": ["NO"],
+  "timeWindowStart": "2026-03-01T00:00:00Z",
+  "timeWindowEnd": "2026-06-01T00:00:00Z",
+  "purpose": "Commercial",
+  "isExclusive": false
+}
+
+### 7. Scenario C: Exclusive license request
+POST {{host}}/assets/{{assetId}}/license-requests
+Content-Type: application/json
+
+{
+  "licenseeId": "{{licenseeId}}",
+  "channel": "Web",
+  "territoryCodes": ["NO"],
+  "timeWindowStart": "2026-03-01T00:00:00Z",
+  "timeWindowEnd": "2026-06-01T00:00:00Z",
+  "purpose": "Editorial",
+  "isExclusive": true
+}
+
+### ─── License Grants ─────────────────────────────────────────────
+
+### 8. Get a specific grant (replace with actual grantId from step 5/7)
+# GET {{host}}/license-grants/<grantId>
+
+### 9. List all grants for an asset
+GET {{host}}/assets/{{assetId}}/license-grants
+
+### 10. List active-only grants for an asset
+GET {{host}}/assets/{{assetId}}/license-grants?activeOnly=true
+
+### 11. Scenario D: Revoke a grant (replace with actual grantId)
+# POST {{host}}/license-grants/<grantId>/revoke
+# Content-Type: application/json
+#
+# {
+#   "reason": "Contract breach - unauthorized sublicensing",
+#   "revokedBy": "admin@example.com"
+# }
+
+### ─── Exclusive Windows ──────────────────────────────────────────
+
+### 12. Add an exclusive window manually (replace grantId)
+# POST {{host}}/assets/{{assetId}}/rights-profile/exclusive-windows
+# Content-Type: application/json
+#
+# {
+#   "grantId": "<grantId>",
+#   "channel": "Web",
+#   "territoryCodes": ["NO"],
+#   "timeWindowStart": "2026-03-01T00:00:00Z",
+#   "timeWindowEnd": "2026-06-01T00:00:00Z",
+#   "purpose": "Editorial"
+# }

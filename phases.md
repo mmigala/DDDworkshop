@@ -126,15 +126,15 @@ CQRS-lite (commands vs queries), thin application layer, orchestration without b
 
 ### Tasks
 
-- [ ] Implement in-memory repositories (backed by `ConcurrentDictionary`):
+- [x] Implement in-memory repositories (backed by `ConcurrentDictionary`):
   - `InMemoryAssetRightsRepository : IAssetRightsRepository`
   - `InMemoryLicenseGrantRepository : ILicenseGrantRepository`
-- [ ] Implement `SystemClock : IClock`
-- [ ] Implement simple domain event dispatcher:
+- [x] Implement `SystemClock : IClock`
+- [x] Implement simple domain event dispatcher:
   - Aggregates collect events in `List<IDomainEvent>`
   - Dispatcher iterates and publishes after "save" (in-process, synchronous)
   - Event handlers registered via DI
-- [ ] No EF Core, no migrations, no connection strings, no outbox
+- [x] No EF Core, no migrations, no connection strings, no outbox
 
 ### Why In-Memory?
 - Keeps the workshop focused on **DDD patterns**, not ORM plumbing
@@ -150,19 +150,19 @@ CQRS-lite (commands vs queries), thin application layer, orchestration without b
 
 ### Tasks
 
-- [ ] `LicenseRequestsController`:
+- [x] `LicenseRequestsController`:
   - `POST /assets/{assetId}/license-requests` → `RequestLicenseCommand`
-- [ ] `LicenseGrantsController`:
+- [x] `LicenseGrantsController`:
   - `POST /license-grants/{grantId}/revoke` → `RevokeLicenseCommand`
   - `GET /license-grants/{grantId}`
   - `GET /assets/{assetId}/license-grants?activeOnly=true`
-- [ ] `RightsProfileController`:
+- [x] `RightsProfileController`:
   - `PUT /assets/{assetId}/rights-profile` → `SetRightsProfileCommand`
   - `POST /assets/{assetId}/rights-profile/restrictions` → `AddRestrictionCommand`
   - `POST /assets/{assetId}/rights-profile/exclusive-windows` → `AddExclusiveWindowCommand`
-- [ ] Request/response models (separate from domain)
-- [ ] Register DI services in `Program.cs`
-- [ ] Add Swagger/OpenAPI
+- [x] Request/response models (separate from domain)
+- [x] Register DI services in `Program.cs`
+- [x] Add Swagger/OpenAPI
 
 ---
 
