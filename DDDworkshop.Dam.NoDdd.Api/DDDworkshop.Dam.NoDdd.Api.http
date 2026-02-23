@@ -1,6 +1,65 @@
-@DDDworkshop.Dam.NoDdd.Api_HostAddress = http://localhost:5185
+@host = http://localhost:5185
+@assetId = 00000000-0000-0000-0000-000000000001
+@licenseeId = 00000000-0000-0000-0000-000000000099
+@ownerId = 00000000-0000-0000-0000-000000000010
 
-GET {{DDDworkshop.Dam.NoDdd.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### ─── Rights Profile ─────────────────────────────────────────────
 
-###
+### 1. Create a rights profile
+PUT {{host}}/assets/{{assetId}}/rights-profile
+Content-Type: application/json
+
+{
+  "ownerId": "{{ownerId}}",
+  "releaseStatus": "ModelRelease"
+}
+
+### 2. Get the rights profile
+GET {{host}}/assets/{{assetId}}/rights-profile
+
+### 3. Add a restriction: block commercial
+POST {{host}}/assets/{{assetId}}/rights-profile/restrictions
+Content-Type: application/json
+
+{
+  "description": "Editorial use only - commercial blocked",
+  "restrictedPurpose": "Commercial"
+}
+
+### ─── License Requests ───────────────────────────────────────────
+
+### 4. Allowed editorial use
+POST {{host}}/assets/{{assetId}}/license-requests
+Content-Type: application/json
+
+{
+  "licenseeId": "{{licenseeId}}",
+  "channel": "Web",
+  "territoryCodes": ["NO"],
+  "timeWindowStart": "2026-03-01T00:00:00Z",
+  "timeWindowEnd": "2026-06-01T00:00:00Z",
+  "purpose": "Editorial",
+  "isExclusive": false
+}
+
+### 5. Denied commercial use
+POST {{host}}/assets/{{assetId}}/license-requests
+Content-Type: application/json
+
+{
+  "licenseeId": "{{licenseeId}}",
+  "channel": "Web",
+  "territoryCodes": ["NO"],
+  "timeWindowStart": "2026-03-01T00:00:00Z",
+  "timeWindowEnd": "2026-06-01T00:00:00Z",
+  "purpose": "Commercial",
+  "isExclusive": false
+}
+
+### ─── License Grants ─────────────────────────────────────────────
+
+### 6. List grants for asset
+GET {{host}}/assets/{{assetId}}/license-grants
+
+### 7. List active-only grants
+GET {{host}}/assets/{{assetId}}/license-grants?activeOnly=true

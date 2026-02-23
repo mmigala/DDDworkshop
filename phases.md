@@ -172,24 +172,24 @@ CQRS-lite (commands vs queries), thin application layer, orchestration without b
 
 ### Tasks
 
-- [ ] Create `DDDworkshop.Dam.NoDdd.Api` project (single project)
-- [ ] EF entities (mutable, public setters):
+- [x] Create `DDDworkshop.Dam.NoDdd.Api` project (single project)
+- [x] EF entities (mutable, public setters):
   - `AssetEntity` (Id, OwnerId, LicensorId)
   - `RestrictionEntity` (Id, AssetId, Channel, Purpose, Territory)
   - `ExclusiveWindowEntity` (Id, AssetId, GrantId, Channel, Territory, Start, End)
   - `LicenseGrantEntity` (Id, AssetId, LicenseeId, Channel, Territory, Purpose, Start, End, Exclusive, Status, IssuedAt, ExpiresAt, RevokedAt, RevocationReason)
-- [ ] `RightsService.cs` – large service with all rights logic:
+- [x] `RightsService.cs` – large service with all rights logic:
   - `EvaluateRights(...)` – checks restrictions, exclusivity, time windows
   - `SetRightsProfile(...)`, `AddRestriction(...)`, `AddExclusiveWindow(...)`
   - Duplicated validation scattered through methods
-- [ ] `LicenseService.cs` – grant management:
+- [x] `LicenseService.cs` – grant management:
   - `IssueLicense(...)` – creates entity, saves directly
   - `RevokeLicense(...)` – loads entity, mutates fields, saves
   - `GetGrant(...)`, `GetGrantsForAsset(...)`
   - Some exclusivity checks duplicated from RightsService
-- [ ] Same API endpoints (controllers call services directly)
-- [ ] Same in-memory storage (but entities are the "domain model", mutated directly by services)
-- [ ] Add inline comments marking anti-patterns:
+- [x] Same API endpoints (controllers call services directly)
+- [x] Same in-memory storage (but entities are the "domain model", mutated directly by services)
+- [x] Add inline comments marking anti-patterns:
   - `// ⚠️ No encapsulation: any code can change Status directly`
   - `// ⚠️ Business rule duplicated from RightsService`
   - `// ⚠️ Hard to test without full EF setup`
