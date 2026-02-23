@@ -231,13 +231,13 @@ CQRS-lite (commands vs queries), thin application layer, orchestration without b
 
 ### Tasks
 
-- [ ] Create `README.md` with:
+- [x] Create `README.md` with:
   - Project overview and how to run
   - Side-by-side comparison table (DDD vs Non-DDD)
   - Demo scenario walkthroughs (A, B, C, D from todo.md)
-- [ ] Add `.http` files or Postman collection for demo scenarios
-- [ ] Add code comments in DDD project explaining each DDD concept
-- [ ] Final review: ensure both projects compile, run, and produce same API behavior
+- [x] Add `.http` files or Postman collection for demo scenarios
+- [x] Add code comments in DDD project explaining each DDD concept
+- [x] Final review: ensure both projects compile, run, and produce same API behavior
 
 ---
 
