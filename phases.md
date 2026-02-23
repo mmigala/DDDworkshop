@@ -10,16 +10,16 @@
 
 ### Tasks
 
-- [ ] Create solution file `DDDworkshop.slnx` (update existing) with project references
-- [ ] Scaffold DDD projects:
+- [x] Create solution file `DDDworkshop.slnx` (update existing) with project references
+- [x] Scaffold DDD projects:
   - `DDDworkshop.Dam.Rights.Domain`
   - `DDDworkshop.Dam.Rights.Application`
   - `DDDworkshop.Dam.Rights.Infrastructure`
   - `DDDworkshop.Dam.Rights.Api`
   - `DDDworkshop.Dam.Rights.Tests`
-- [ ] Scaffold Non-DDD project:
+- [x] Scaffold Non-DDD project:
   - `DDDworkshop.Dam.NoDdd.Api` (single project, all-in-one)
-- [ ] Implement **value objects** in Domain layer:
+- [x] Implement **value objects** in Domain layer:
   - `AssetId`, `LicenseGrantId`, `LicenseeId`, `OwnerId`
   - `UsageChannel` (enum/smart enum)
   - `UsagePurpose` (enum/smart enum)
@@ -29,8 +29,8 @@
   - `LicenseTerms` (scope + exclusive flag)
   - `RevocationReason`
   - `ReleaseStatus` (None / ModelRelease / PropertyRelease / Both)
-- [ ] Add base classes: `Entity<TId>`, `AggregateRoot<TId>`, `ValueObject`
-- [ ] Add domain exceptions: `RightsViolationException`, `InvalidTimeWindowException`
+- [x] Add base classes: `Entity<TId>`, `AggregateRoot<TId>`, `ValueObject`
+- [x] Add domain exceptions: `RightsViolationException`, `InvalidTimeWindowException`
 
 ### DDD Concepts Introduced
 Immutable value objects, strong typing for IDs, base building blocks.
@@ -43,7 +43,7 @@ Immutable value objects, strong typing for IDs, base building blocks.
 
 ### Tasks
 
-- [ ] Implement `AssetRights` aggregate root:
+- [x] Implement `AssetRights` aggregate root:
   - Entity: `RightRestriction` (id, restricted channel/purpose/territory)
   - Entity: `ExclusiveWindow` (id, grantId, scope, time window)
   - `AddRestriction(...)` / `RemoveRestriction(...)`
@@ -53,7 +53,7 @@ Immutable value objects, strong typing for IDs, base building blocks.
   - Invariant: no overlapping exclusive windows
   - Invariant: restrictions block matching requests
   - Invariant: time window validity
-- [ ] Implement `LicenseGrant` aggregate root:
+- [x] Implement `LicenseGrant` aggregate root:
   - Entity: `GrantStatusHistory` (status transitions with timestamps)
   - Factory method `Issue(...)` → creates grant in `Issued` state
   - `Revoke(reason, byUser)` → state transition with guard
@@ -61,8 +61,8 @@ Immutable value objects, strong typing for IDs, base building blocks.
   - Invariant: cannot revoke expired grant
   - Invariant: cannot issue if already issued
   - Invariant: terms immutable once issued
-- [ ] Implement `RightsDecision` result type (Allowed/Denied + denial reasons)
-- [ ] Add `ReleaseStatus` restriction: "Commercial requires ModelRelease"
+- [x] Implement `RightsDecision` result type (Allowed/Denied + denial reasons)
+- [x] Add `ReleaseStatus` restriction: "Commercial requires ModelRelease"
 
 ### DDD Concepts Introduced
 Aggregate roots, entities within aggregates, encapsulation (no public setters), invariant enforcement, rich domain model.
