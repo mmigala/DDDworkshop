@@ -98,22 +98,22 @@ Domain services/policies, domain events, repository abstractions, isolation (dom
 
 ### Tasks
 
-- [ ] Implement commands:
+- [x] Implement commands:
   - `RequestLicenseCommand` (assetId, licenseeId, channel, territory, timeWindow, purpose, exclusive)
   - `RevokeLicenseCommand` (grantId, reason, revokedBy)
   - `SetRightsProfileCommand` (assetId, ownerId, licensorId)
   - `AddRestrictionCommand` (assetId, restrictedChannel, restrictedPurpose, restrictedTerritory)
   - `AddExclusiveWindowCommand` (assetId, scope, timeWindow)
-- [ ] Implement command handlers:
+- [x] Implement command handlers:
   - `RequestLicenseHandler` – loads aggregate, evaluates, checks exclusivity policy, issues grant
   - `RevokeLicenseHandler` – loads grant, calls `Revoke()`
   - `SetRightsProfileHandler`, `AddRestrictionHandler`, `AddExclusiveWindowHandler`
-- [ ] Implement queries / read DTOs:
+- [x] Implement queries / read DTOs:
   - `LicenseGrantDto`
   - `RightsDecisionDto`
   - `AssetRightsProfileDto`
-- [ ] Define `IClock` and `IUnitOfWork` interfaces
-- [ ] Wire up domain event dispatching (in-process)
+- [x] Define `IClock` and `IUnitOfWork` interfaces
+- [x] Wire up domain event dispatching (in-process)
 
 ### DDD Concepts Introduced
 CQRS-lite (commands vs queries), thin application layer, orchestration without business logic.
