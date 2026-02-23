@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="DDDworkshop.Dam.NoDdd.Api/DDDworkshop.Dam.NoDdd.Api.csproj" />
+  <Project Path="DDDworkshop.Dam.Rights.Api/DDDworkshop.Dam.Rights.Api.csproj" />
+  <Project Path="DDDworkshop.Dam.Rights.Application/DDDworkshop.Dam.Rights.Application.csproj" />
+  <Project Path="DDDworkshop.Dam.Rights.Domain/DDDworkshop.Dam.Rights.Domain.csproj" />
+  <Project Path="DDDworkshop.Dam.Rights.Infrastructure/DDDworkshop.Dam.Rights.Infrastructure.csproj" />
+  <Project Path="DDDworkshop.Dam.Rights.Tests/DDDworkshop.Dam.Rights.Tests.csproj" />
+</Solution>
