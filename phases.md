@@ -211,17 +211,17 @@ CQRS-lite (commands vs queries), thin application layer, orchestration without b
 
 ### Tasks
 
-- [ ] **DDD domain tests** (pure, no infrastructure):
-  - `AssetRightsTests` – evaluate allowed/denied scenarios
-  - `LicenseGrantTests` – lifecycle transitions, guard clauses
-  - `TimeWindowTests`, `TerritoryTests` – value object validation
-  - `ExclusiveLicensingPolicyTests` – overlap detection
-- [ ] **DDD application tests**:
-  - `RequestLicenseHandlerTests` – orchestration with mocked repos
-- [ ] **Non-DDD tests** (to contrast):
-  - `RightsServiceTests` – requires full service setup with data store
-  - `LicenseServiceTests` – same heavy setup
-  - Show how the same test is harder to write and more fragile (business rules not testable in isolation)
+- [x] **DDD domain tests** (pure, no infrastructure):
+  - `AssetRightsTests` – evaluate allowed/denied scenarios (20 tests)
+  - `LicenseGrantTests` – lifecycle transitions, guard clauses (14 tests)
+  - `TimeWindowTests`, `TerritoryTests` – value object validation (22 tests)
+  - `ExclusiveLicensingPolicyTests` – overlap detection (5 tests)
+- [x] **DDD application tests**:
+  - `RequestLicenseHandlerTests` – orchestration with stub repos (7 tests)
+- [x] **Non-DDD contrast tests**:
+  - `RightsServiceContrastTests` – heavy setup, typo bug demo (5 tests)
+  - `LicenseServiceContrastTests` – encapsulation bypass, no events (5 tests)
+  - Demonstrates: heavier setup, silent typo bugs, public-setter bypass, no audit trail
 
 ---
 

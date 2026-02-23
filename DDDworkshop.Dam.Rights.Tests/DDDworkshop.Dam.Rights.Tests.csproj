@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DDDworkshop.Dam.Rights.Domain\DDDworkshop.Dam.Rights.Domain.csproj" />
     <ProjectReference Include="..\DDDworkshop.Dam.Rights.Application\DDDworkshop.Dam.Rights.Application.csproj" />
+    <ProjectReference Include="..\DDDworkshop.Dam.NoDdd.Api\DDDworkshop.Dam.NoDdd.Api.csproj" />
   </ItemGroup>
 
 </Project>
