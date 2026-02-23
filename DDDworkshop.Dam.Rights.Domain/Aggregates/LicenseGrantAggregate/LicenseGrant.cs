@@ -1,5 +1,6 @@
 namespace DDDworkshop.Dam.Rights.Domain.Aggregates.LicenseGrantAggregate;
 
+using DDDworkshop.Dam.Rights.Domain.Events;
 using DDDworkshop.Dam.Rights.Domain.Exceptions;
 using DDDworkshop.Dam.Rights.Domain.SeedWork;
 using DDDworkshop.Dam.Rights.Domain.ValueObjects;
@@ -98,6 +99,7 @@ public sealed class LicenseGrant : AggregateRoot<LicenseGrantId>
             expiresAt);
 
         grant.RecordStatusTransition(GrantStatus.Issued, issuedAt, "License issued");
+        grant.AddDomainEvent(new LicenseGrantedEvent(assetId, grant.Id, terms, licenseeId));
 
         return grant;
     }
@@ -123,6 +125,7 @@ public sealed class LicenseGrant : AggregateRoot<LicenseGrantId>
         Status = GrantStatus.Revoked;
 
         RecordStatusTransition(GrantStatus.Revoked, now, $"Revoked by {revokedBy}: {reason}");
+        AddDomainEvent(new LicenseRevokedEvent(Id, AssetId, reason, revokedBy));
     }
 
     /// <summary>

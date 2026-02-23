@@ -75,15 +75,15 @@ Aggregate roots, entities within aggregates, encapsulation (no public setters), 
 
 ### Tasks
 
-- [ ] Implement `ExclusiveLicensingPolicy` domain service:
+- [x] Implement `ExclusiveLicensingPolicy` domain service:
   - Check existing active grants for scope overlap
   - Interface: `IExclusiveLicensingPolicy`
   - Depends on `ILicenseGrantRepository` (interface only in domain)
-- [ ] Define domain events:
+- [x] Define domain events:
   - `LicenseGrantedEvent` (AssetId, GrantId, Terms, LicenseeId)
   - `LicenseRevokedEvent` (GrantId, Reason, RevokedBy)
-- [ ] Raise events from aggregate methods (`Issue`, `Revoke`)
-- [ ] Define repository interfaces in domain:
+- [x] Raise events from aggregate methods (`Issue`, `Revoke`)
+- [x] Define repository interfaces in domain:
   - `IAssetRightsRepository`
   - `ILicenseGrantRepository` (including `FindActiveByAsset`)
 
