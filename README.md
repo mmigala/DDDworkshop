@@ -6,6 +6,38 @@ Both projects expose **identical API endpoints** and produce the same results �
 
 ---
 
+## Table of Contents
+
+- [DDD vs Non-DDD Workshop](#ddd-vs-non-ddd-workshop)
+  - [Table of Contents](#table-of-contents)
+  - [What Does This App Do?](#what-does-this-app-do)
+    - [The Business Problem](#the-business-problem)
+    - [How It Works](#how-it-works)
+    - [Real-World Analogy](#real-world-analogy)
+  - [Quick Start](#quick-start)
+    - [Prerequisites](#prerequisites)
+    - [Run the DDD API (port 5177)](#run-the-ddd-api-port-5177)
+    - [Run the Non-DDD API (port 5185)](#run-the-non-ddd-api-port-5185)
+    - [Run Tests](#run-tests)
+  - [Solution Structure](#solution-structure)
+  - [Side-by-Side Comparison](#side-by-side-comparison)
+  - [Key DDD Concepts Demonstrated](#key-ddd-concepts-demonstrated)
+  - [Demo Scenarios](#demo-scenarios)
+    - [Scenario A: Allowed Editorial Use](#scenario-a-allowed-editorial-use)
+    - [Scenario B: Denied Commercial Use](#scenario-b-denied-commercial-use)
+    - [Scenario C: Exclusivity Conflict](#scenario-c-exclusivity-conflict)
+    - [Scenario D: Revocation \& Audit](#scenario-d-revocation--audit)
+  - [Anti-Patterns Highlighted in Non-DDD Project](#anti-patterns-highlighted-in-non-ddd-project)
+  - [Common DDD Anti-Patterns (and How to Avoid Them)](#common-ddd-anti-patterns-and-how-to-avoid-them)
+  - [Test Testability Comparison](#test-testability-comparison)
+    - [DDD Tests (61 tests — pure, fast, no infrastructure)](#ddd-tests-61-tests--pure-fast-no-infrastructure)
+    - [Non-DDD Tests (17 tests — heavy setup, fragile)](#non-ddd-tests-17-tests--heavy-setup-fragile)
+  - [API Endpoints (Same for Both Projects)](#api-endpoints-same-for-both-projects)
+  - [Tech Stack](#tech-stack)
+  - [DDD Concepts Glossary](#ddd-concepts-glossary)
+
+---
+
 ## What Does This App Do?
 
 This application models a **rights-based licensing system** for digital assets (photos, videos, illustrations) — the kind of system used by stock media companies, news agencies, and content marketplaces.
@@ -70,6 +102,9 @@ dotnet test DDDworkshop.Dam.Rights.Tests
 
 ## Solution Structure
 
+<details>
+<summary>Click to expand project tree</summary>
+
 ```
 DDDworkshop.slnx
 │
@@ -116,6 +151,8 @@ DDDworkshop.slnx
     └── NoDddContrast/                      # RightsServiceContrastTests, LicenseServiceContrastTests
 ```
 
+</details>
+
 ---
 
 ## Side-by-Side Comparison
@@ -157,6 +194,9 @@ DDDworkshop.slnx
 ## Demo Scenarios
 
 Use the `.http` files in VS Code (REST Client extension) or Swagger UI to walk through these scenarios. Run both APIs side-by-side to compare behavior.
+
+<details>
+<summary>Click to expand all scenarios</summary>
 
 ### Scenario A: Allowed Editorial Use
 
@@ -212,6 +252,8 @@ Use the `.http` files in VS Code (REST Client extension) or Swagger UI to walk t
 
 **Non-DDD:** `LicenseService.RevokeLicense()` has guards in the service only — entity has public setters so `grant.Status = "Revoked"` works anywhere
 
+</details>
+
 ---
 
 ## Anti-Patterns Highlighted in Non-DDD Project
@@ -230,7 +272,27 @@ Every anti-pattern in the Non-DDD project is marked with `// ⚠️ ANTI-PATTERN
 
 ---
 
+## Common DDD Anti-Patterns (and How to Avoid Them)
+
+DDD solves many problems, but it introduces its own pitfalls. Watch out for these:
+
+| Anti-Pattern | What goes wrong | How to avoid it |
+|-------------|----------------|-----------------|
+| **God Aggregate** | The aggregate root grows into a massive class with dozens of methods, hundreds of lines, and too many responsibilities. Happens when you put everything "about an asset" into one aggregate. | Split into **separate aggregates** with clear boundaries. In this project, `AssetRights` (rules) and `LicenseGrant` (issued permissions) are deliberately separate — not one giant `Asset` aggregate. |
+| **Aggregate too large / too many entities** | Loading the aggregate pulls in thousands of child entities (e.g., all grants ever issued), causing performance issues. | Keep aggregates small. Reference other aggregates **by ID**, not by direct object reference. `AssetRights` doesn't hold `LicenseGrant` objects — it only holds `ExclusiveWindow`s (a small set). |
+| **Anemic Domain Model (in disguise)** | You create aggregate classes but put all logic in application handlers or domain services. The aggregate is just a data container with extra steps. | Logic belongs **inside** the aggregate. `AssetRights.Evaluate()` makes the decision, not the handler. The handler just orchestrates (load → call → save). |
+| **Over-engineering value objects** | Creating a value object for every single field (`FirstName`, `LastName`, `Email`, `Description`...) when a plain string would do. Adds ceremony without business value. | Use value objects when there's **real domain logic** to encapsulate: `Territory` validates ISO codes, `TimeWindow` enforces start < end. Don't wrap strings that have no invariants. |
+| **Cross-aggregate transactions** | Trying to update `AssetRights` and `LicenseGrant` in a single atomic operation. Leads to distributed locking, performance issues, and tight coupling. | Use **domain events** for cross-aggregate side effects. In this project, `LicenseGrant.Issue()` raises `LicenseGrantedEvent` → handler calls `AssetRights.ReserveExclusiveScope()` separately. |
+| **Domain service does everything** | Moving logic out of aggregates and into domain services "for convenience." The service becomes the new god class. | Domain services are for logic that **genuinely spans multiple aggregates**. `ExclusiveLicensingPolicy` checks existing grants (different aggregate) — that's a valid use. Single-aggregate rules stay in the aggregate. |
+| **Leaking domain types to the API** | Returning domain entities/value objects directly from controllers. API contract becomes coupled to domain model changes. | Use **DTOs** at the application layer and **response models** at the API layer. In this project: Domain → `DtoMapper` → DTO → `ResponseMapper` → API response. |
+| **Repository doing business logic** | Putting query filters, calculations, or rule checks inside repository implementations. | Repositories should only **load and save** aggregates. Business decisions happen in the domain. `ILicenseGrantRepository.FindActiveByAssetAsync()` is a query — the *policy* decides what to do with the results. |
+
+---
+
 ## Test Testability Comparison
+
+<details>
+<summary>Click to expand code examples</summary>
 
 ### DDD Tests (61 tests — pure, fast, no infrastructure)
 
@@ -273,6 +335,8 @@ public void EvaluateRights_ChannelRestricted_ReturnsDenied()
 }
 ```
 
+</details>
+
 ---
 
 ## API Endpoints (Same for Both Projects)
@@ -298,3 +362,19 @@ public void EvaluateRights_ChannelRestricted_ReturnsDenied()
 - **In-memory persistence** (ConcurrentDictionary) — no EF Core, no database
 - **Swashbuckle** for Swagger UI
 - No external dependencies in the Domain layer
+
+---
+
+## DDD Concepts Glossary
+
+| Concept | What it is | Example in this project |
+|---------|-----------|------------------------|
+| **Value Object** | Immutable object defined by its attributes, no identity. Two instances with the same data are equal. | `Territory`, `TimeWindow`, `LicenseScope` |
+| **Entity** | Object with a unique identity that persists over time. | `RightRestriction`, `ExclusiveWindow` |
+| **Aggregate Root** | Entry point to a cluster of related entities/value objects. Enforces all invariants for the group. | `AssetRights`, `LicenseGrant` |
+| **Aggregate** | The cluster itself — root + its children. Nothing outside touches the children directly. | `AssetRights` + its `RightRestriction`s + `ExclusiveWindow`s |
+| **Domain Event** | A record that something meaningful happened in the domain. | `LicenseGrantedEvent`, `LicenseRevokedEvent` |
+| **Domain Service / Policy** | Logic that doesn't naturally belong to a single aggregate (cross-aggregate rules). | `ExclusiveLicensingPolicy` (checks grants across aggregates) |
+| **Repository** | Abstraction for loading/saving aggregates. Interface in domain, implementation in infrastructure. | `IAssetRightsRepository`, `ILicenseGrantRepository` |
+| **Invariant** | A business rule that must always be true. The aggregate enforces it. | "No overlapping exclusive windows", "Cannot revoke an expired grant" |
+| **Ubiquitous Language** | Shared vocabulary between developers and domain experts, reflected directly in code. | `LicenseGrant`, `RightsDecision`, `RevocationReason` — not `DataRow`, `Result`, `StatusString` |

@@ -92,25 +92,25 @@ GET {{host}}/assets/{{assetId}}/license-grants
 GET {{host}}/assets/{{assetId}}/license-grants?activeOnly=true
 
 ### 11. Scenario D: Revoke a grant (replace with actual grantId)
-# POST {{host}}/license-grants/<grantId>/revoke
-# Content-Type: application/json
-#
-# {
-#   "reason": "Contract breach - unauthorized sublicensing",
-#   "revokedBy": "admin@example.com"
-# }
+POST {{host}}/license-grants/58701f4d-c831-4859-b043-60217558b145/revoke
+Content-Type: application/json
+
+{
+  "reason": "Contract breach - unauthorized sublicensing",
+  "revokedBy": "admin@example.com"
+}
 
 ### ─── Exclusive Windows ──────────────────────────────────────────
 
 ### 12. Add an exclusive window manually (replace grantId)
-# POST {{host}}/assets/{{assetId}}/rights-profile/exclusive-windows
-# Content-Type: application/json
-#
-# {
-#   "grantId": "<grantId>",
-#   "channel": "Web",
-#   "territoryCodes": ["NO"],
-#   "timeWindowStart": "2026-03-01T00:00:00Z",
-#   "timeWindowEnd": "2026-06-01T00:00:00Z",
-#   "purpose": "Editorial"
-# }
+POST {{host}}/assets/{{assetId}}/rights-profile/exclusive-windows
+Content-Type: application/json
+
+{
+  "grantId": "58701f4d-c831-4859-b043-60217558b145",
+   "channel": "Web",
+   "territoryCodes": ["NO"],
+   "timeWindowStart": "2026-03-01T00:00:00Z",
+   "timeWindowEnd": "2026-06-01T00:00:00Z",
+   "purpose": "Editorial"
+ }
