@@ -170,4 +170,65 @@ public class LicenseServiceContrastTests
         var grant = store.LicenseGrants[grantId!.Value];
         Assert.NotNull(grant); // That's all we can check — no events, no audit trail
     }
+
+    [Fact]
+    public void ScatteredValidation_BulkRevoke_BypassesServiceGuards()
+    {
+        // ⚠️ DDD CONTRAST: "Scattered validation" anti-pattern.
+        //
+        // Scenario: A developer adds a bulk-revoke feature but goes directly to the 
+        // data store instead of using LicenseService.RevokeLicense().
+        //
+        // Result:
+        //   - "Cannot revoke expired grant" guard is SKIPPED
+        //   - RevocationReason / RevokedBy / RevokedAt are NOT set
+        //   - Exclusive windows are NOT cleaned up → phantom conflicts
+        //
+        // In DDD, this is impossible: LicenseGrant.Revoke() is the only path,
+        // and it enforces all invariants internally.
+
+        var store = new InMemoryDataStore();
+        var rightsService = new RightsService(store);
+        var licenseService = new LicenseService(store);
+
+        var assetId = Guid.NewGuid();
+        rightsService.SetRightsProfile(assetId, Guid.NewGuid(), "None");
+
+        // Issue an exclusive license
+        var (_, grantId, _) = licenseService.IssueLicense(
+            assetId, Guid.NewGuid(), "Web", "NO",
+            new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
+            "Editorial", true);
+
+        // ⚠️ "Bulk revoke" — bypasses LicenseService, goes straight to the entity
+        var grant = store.LicenseGrants[grantId!.Value];
+        grant.Status = "Revoked"; // Direct mutation — no guards!
+
+        // PROBLEM 1: Audit trail is incomplete
+        Assert.Null(grant.RevocationReason);  // Not set!
+        Assert.Null(grant.RevokedBy);          // Not set!
+        Assert.Null(grant.RevokedAt);          // Not set!
+
+        // PROBLEM 2: Exclusive windows are still in the store
+        var orphanedWindows = store.ExclusiveWindows.Values
+            .Where(w => w.GrantId == grantId.Value)
+            .ToList();
+        Assert.NotEmpty(orphanedWindows); // Window still exists!
+
+        // PROBLEM 3: New exclusive requests will be wrongly denied (phantom conflict)
+        var (isAllowed, _, reasons) = licenseService.IssueLicense(
+            assetId, Guid.NewGuid(), "Web", "NO",
+            new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
+            "Editorial", true);
+
+        // ⚠️ This SHOULD be allowed (original grant is revoked!) but it's DENIED
+        // because the orphaned ExclusiveWindow was never cleaned up.
+        Assert.False(isAllowed); // Bug! Should be true.
+        Assert.Contains(reasons, r => r.Contains("ExclusiveConflict"));
+
+        // Compare to DDD: LicenseGrant.Revoke() + handler would clean up the 
+        // ExclusiveWindow via AssetRights.RevokeExclusiveScope(). No orphans possible.
+    }
 }

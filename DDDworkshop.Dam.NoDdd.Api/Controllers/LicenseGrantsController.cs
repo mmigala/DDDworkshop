@@ -1,5 +1,6 @@
 namespace DDDworkshop.Dam.NoDdd.Api.Controllers;
 
+using DDDworkshop.Dam.NoDdd.Api.Data;
 using DDDworkshop.Dam.NoDdd.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,12 @@ using Microsoft.AspNetCore.Mvc;
 public class LicenseGrantsController : ControllerBase
 {
     private readonly LicenseService _licenseService;
+    private readonly InMemoryDataStore _store;
 
-    public LicenseGrantsController(LicenseService licenseService)
+    public LicenseGrantsController(LicenseService licenseService, InMemoryDataStore store)
     {
         _licenseService = licenseService;
+        _store = store;
     }
 
     /// <summary>
@@ -103,9 +106,67 @@ public class LicenseGrantsController : ControllerBase
 
         return Ok(result);
     }
+
+    // ──────────────────────────────────────────────
+    // ⚠️ ANTI-PATTERN: A "quick" admin endpoint written by a different developer.
+    // They didn't use LicenseService.RevokeLicense() — they went straight to the data store.
+    //
+    // What's missing:
+    //   1. No "cannot revoke expired grant" guard (service has it, this doesn't)
+    //   2. No "already revoked" guard
+    //   3. No exclusive window cleanup
+    //   4. No domain events (if they existed)
+    //   5. RevokedBy/RevokedAt not set
+    //
+    // This is EXACTLY the scattered validation problem:
+    //   - LicenseService.RevokeLicense() has the correct logic
+    //   - This endpoint bypasses it entirely
+    //   - Both "work" — but this one creates invalid state
+    //
+    // In DDD, this CAN'T happen: LicenseGrant.Revoke() is the ONLY way to revoke,
+    // and it enforces all guards internally. There's no data bag to mutate directly.
+    // ──────────────────────────────────────────────
+
+    /// <summary>
+    /// Bulk-revoke all grants for an asset (admin shortcut).
+    /// </summary>
+    [HttpPost("assets/{assetId:guid}/license-grants/bulk-revoke")]
+    public IActionResult BulkRevoke(
+        [FromRoute] Guid assetId,
+        [FromBody] BulkRevokeBody body)
+    {
+        // ⚠️ Goes directly to the data store — bypasses LicenseService entirely.
+        var grants = _store.LicenseGrants.Values
+            .Where(g => g.AssetId == assetId && g.Status == "Issued")
+            .ToList();
+
+        if (grants.Count == 0)
+            return NotFound(new { error = "No active grants found for this asset." });
+
+        foreach (var grant in grants)
+        {
+            // ⚠️ Just flips the status string — no guards, no cleanup, no events.
+            // An expired grant could sneak in if timing is unlucky (TOCTOU).
+            // RevokedBy, RevokedAt, RevocationReason are NOT set → incomplete audit trail.
+            // Exclusive windows are NOT removed → future exclusive requests will be wrongly denied.
+            grant.Status = "Revoked";
+        }
+
+        return Ok(new
+        {
+            message = $"Bulk-revoked {grants.Count} grant(s).",
+            revokedGrantIds = grants.Select(g => g.Id)
+        });
+    }
 }
 
 public class RevokeBody
+{
+    public string Reason { get; set; } = default!;
+    public string RevokedBy { get; set; } = default!;
+}
+
+public class BulkRevokeBody
 {
     public string Reason { get; set; } = default!;
     public string RevokedBy { get; set; } = default!;

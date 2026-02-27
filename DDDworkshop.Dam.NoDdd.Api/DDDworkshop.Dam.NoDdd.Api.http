@@ -138,3 +138,44 @@ GET {{host}}/assets/{{assetId}}/license-grants?activeOnly=true
 #   "timeWindowEnd": "2026-06-01T00:00:00Z",
 #   "purpose": "Editorial"
 # }
+
+### ─── Scattered Validation Demo ──────────────────────────────────
+# This section demonstrates the "scattered validation" anti-pattern.
+# A second developer added a bulk-revoke endpoint that bypasses LicenseService.
+#
+# Run steps 1–7 first (create profile, add restrictions, issue an exclusive grant).
+# Then follow these steps to see the problem:
+
+### 14. Scenario E: Bulk-revoke bypasses validation
+# ⚠️ This endpoint goes directly to the data store — no guards, no audit trail, no cleanup.
+# Compare to step 12 which uses LicenseService.RevokeLicense() correctly.
+POST {{host}}/assets/{{assetId}}/license-grants/bulk-revoke
+Content-Type: application/json
+
+{
+  "reason": "Admin cleanup",
+  "revokedBy": "admin@example.com"
+}
+
+### 15. Check the damage — grants show "Revoked" but audit fields are empty
+# After step 14, GET a grant and notice:
+#   - RevocationReason is NULL (not set!)
+#   - RevokedBy is NULL
+#   - RevokedAt is NULL
+#   - No audit trail at all
+GET {{host}}/assets/{{assetId}}/license-grants
+
+### 16. Check the damage — exclusive windows are still there!
+# After bulk-revoke, the exclusive window was NOT cleaned up.
+# So a NEW exclusive license request will be WRONGLY DENIED with ExclusiveConflict,
+# even though the original grant was revoked.
+# Run step 7 again after bulk-revoke to see the phantom conflict.
+
+### 17. Try the same thing with the proper revoke endpoint (step 12)
+# The LicenseService.RevokeLicense() method:
+#   ✅ Checks "cannot revoke expired"
+#   ✅ Checks "already revoked"
+#   ✅ Sets RevocationReason, RevokedBy, RevokedAt
+#   ✅ Removes exclusive windows for the grant
+#
+# But nothing stops a developer from bypassing it — the entity has public setters.
