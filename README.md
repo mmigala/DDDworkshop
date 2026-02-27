@@ -6,6 +6,35 @@ Both projects expose **identical API endpoints** and produce the same results �
 
 ---
 
+## What Does This App Do?
+
+This application models a **rights-based licensing system** for digital assets (photos, videos, illustrations) — the kind of system used by stock media companies, news agencies, and content marketplaces.
+
+### The Business Problem
+
+A media company owns a library of digital assets. Customers want to **use** those assets — on a website, in a TV broadcast, in a print magazine, etc. But usage isn't unlimited. Each asset has legal constraints:
+
+- **Who owns it** and what releases are in place (model release, property release)
+- **Where** it can be used (specific countries/territories)
+- **How** it can be used (web, print, broadcast, social media)
+- **Why** it's being used (editorial reporting vs. commercial advertising)
+- **When** it can be used (specific time windows)
+- **Exclusively or not** (can multiple customers use it at the same time?)
+
+### How It Works
+
+1. **Set up an asset's rights profile** — define the owner, release status, and any restrictions (e.g., "no commercial use", "no broadcast in the US")
+2. **Request a license** — a customer asks to use the asset for a specific channel, territory, time period, and purpose
+3. **The system evaluates the request** — checks all restrictions, exclusivity conflicts, and release requirements
+4. **Grant or deny** — if allowed, a license grant is issued (an auditable permission record); if not, the system returns the specific reasons why
+5. **Manage grants** — view active licenses, revoke them if needed (e.g., contract breach), track status history
+
+### Real-World Analogy
+
+Think of it like a **concert venue booking system**: the venue (asset) has rules about what events are allowed, a promoter (licensee) requests a date and type of event, the system checks for conflicts and restrictions, and if approved, a booking contract (license grant) is issued. Exclusive bookings block others from using the same slot.
+
+---
+
 ## Quick Start
 
 ### Prerequisites
